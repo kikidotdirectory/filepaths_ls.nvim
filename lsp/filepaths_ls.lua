@@ -117,7 +117,8 @@ local function resolve_scan_dir(document_uri, dir_part)
         return nil
     end
 
-    local base_dir = vim.uv.cwd() or vim.fs.dirname(file)
+    local buf_dir = vim.fs.dirname(file)
+    local base_dir = vim.uv.cwd() or buf_dir
     if not base_dir or base_dir == '' then
         return nil
     end
@@ -140,6 +141,13 @@ local function resolve_scan_dir(document_uri, dir_part)
 
     if vim.startswith(dir_part, '~') or vim.startswith(dir_part, '/') then
         return vim.fs.normalize(dir_part)
+    end
+
+    if vim.startswith(dir_part, './') or vim.startswith(dir_part, '../') then
+        if not buf_dir or buf_dir == '' then
+            return nil
+        end
+        return vim.fs.normalize(vim.fs.joinpath(buf_dir, dir_part))
     end
 
     return vim.fs.normalize(vim.fs.joinpath(base_dir, dir_part))
